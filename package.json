@@ -2,6 +2,7 @@
   "name": "ikifurni-api",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
+    "build": "bun install && bun db:migrate:deploy && bun db:gen",
     "start": "bun run src/index.ts",
     "db:up": "docker compose up -d",
     "db:migrate": "prisma migrate dev",
