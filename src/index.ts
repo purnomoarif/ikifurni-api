@@ -1,17 +1,12 @@
 import { cors } from "hono/cors";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { Scalar } from "@scalar/hono-api-reference";
 
 import { db } from "./lib/db";
 
 const app = new OpenAPIHono();
 
 app.use(cors());
-
-app.get("/", (c) => {
-  return c.json({
-    title: "Ikifurni API",
-  });
-});
 
 const getProductRoute = createRoute({
   method: "get",
@@ -53,5 +48,13 @@ app.doc("/openapi.json", {
     version: "1.0.0",
   },
 });
+
+app.get(
+  "/",
+  Scalar({
+    pageTitle: "Ikifurni API",
+    url: "/openapi.json",
+  })
+);
 
 export default app;
