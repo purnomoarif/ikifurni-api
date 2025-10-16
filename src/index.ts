@@ -16,6 +16,25 @@ app.use(cors());
 app.openapi(
   createRoute({
     method: "get",
+    path: "/products",
+    responses: {
+      200: {
+        description: "Get all products",
+        content: { "application/json": { schema: ProductsSchema } },
+      },
+    },
+  }),
+
+  async (c) => {
+    const products = await db.product.findMany();
+
+    return c.json(products);
+  }
+);
+
+app.openapi(
+  createRoute({
+    method: "get",
     path: "/products/{slug}",
     request: { params: ProductSlugParamSchema },
     responses: {
