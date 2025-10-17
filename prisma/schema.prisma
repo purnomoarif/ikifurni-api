@@ -14,9 +14,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model product {
-  id String @id @default(uuid())
-
+model Product {
+  id       String @id @default(uuid())
+  slug     String @unique
   name     String
   imageUrl String
 

@@ -1,20 +1,149 @@
-import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { db } from "./lib.db/db";
+import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { Scalar } from "@scalar/hono-api-reference";
 
-const app = new Hono();
+import { db } from "./lib/db";
+import {
+  ProductSlugParamSchema,
+  ProductSchema,
+  ProductsSchema,
+} from "./modules/product/schema";
+
+const app = new OpenAPIHono();
 
 app.use(cors());
 
-app.get("/", (c) => {
-  return c.json({
+// GET all products
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/products",
+    responses: {
+      200: {
+        description: "Get all products",
+        content: { "application/json": { schema: ProductsSchema } },
+      },
+    },
+  }),
+
+  async (c) => {
+    const products = await db.product.findMany();
+
+    return c.json(products);
+  }
+);
+
+// GET product by slug
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/products/{slug}",
+    request: { params: ProductSlugParamSchema },
+    responses: {
+      200: {
+        description: "Get one product by slug",
+        content: { "application/json": { schema: ProductSchema } },
+      },
+      404: {
+        description: "Product by slug not found",
+      },
+    },
+  }),
+  async (c) => {
+    const { slug } = c.req.valid("param");
+
+    const product = await db.product.findUnique({ where: { slug } });
+
+    if (!product) {
+      return c.notFound();
+    }
+
+    return c.json(product);
+  }
+);
+
+// POST new product
+app.openapi(
+  createRoute({
+    method: "post",
+    path: "/products",
+    request: {
+      body: {
+        content: {
+          "application/json": {
+            schema: ProductSchema.omit({ id: true }),
+          },
+        },
+      },
+    },
+    responses: {
+      201: {
+        description: "Product created successfully",
+        content: { "application/json": { schema: ProductSchema } },
+      },
+      400: { description: "Invalid request" },
+    },
+  }),
+  async (c) => {
+    try {
+      const data = c.req.valid("json");
+
+      const newProduct = await db.product.create({
+        data,
+      });
+
+      return c.json(newProduct, 201);
+    } catch (error) {
+      console.error(error);
+      return c.json({ error: "Failed to create product" }, 400);
+    }
+  }
+);
+
+// DELETE product by id
+app.openapi(
+  createRoute({
+    method: "delete",
+    path: "/products/{id}",
+    request: {
+      params: z.object({
+        id: z.string().openapi({ example: "123" }),
+      }),
+    },
+    responses: {
+      200: { description: "Product deleted successfully" },
+      404: { description: "Product not found" },
+    },
+  }),
+  async (c) => {
+    const { id } = c.req.valid("param");
+
+    const product = await db.product.findUnique({ where: { id } });
+
+    if (!product) {
+      return c.notFound();
+    }
+
+    await db.product.delete({ where: { id } });
+
+    return c.json({ message: "Product deleted successfully" });
+  }
+);
+
+app.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
     title: "Ikifurni API",
-  });
+    version: "1.0.0",
+  },
 });
 
-app.get("/products", async (c) => {
-  const products = await db.product.findMany();
-  return c.json(products);
-});
+app.get(
+  "/",
+  Scalar({
+    pageTitle: "Ikifurni API",
+    url: "/openapi.json",
+  })
+);
 
 export default app;
