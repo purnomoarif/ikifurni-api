@@ -7,6 +7,8 @@ import {
   ProductSlugParamSchema,
   ProductSchema,
   ProductsSchema,
+  ProductCreateSchema,
+  ProductIdParamSchema,
 } from "./modules/product/schema";
 
 const app = new OpenAPIHono();
@@ -69,11 +71,7 @@ app.openapi(
     path: "/products",
     request: {
       body: {
-        content: {
-          "application/json": {
-            schema: ProductSchema.omit({ id: true }),
-          },
-        },
+        content: { "application/json": { schema: ProductCreateSchema } },
       },
     },
     responses: {
@@ -105,26 +103,20 @@ app.openapi(
   createRoute({
     method: "delete",
     path: "/products/{id}",
-    request: {
-      params: z.object({
-        id: z.string().openapi({ example: "123" }),
-      }),
-    },
+    request: { params: ProductIdParamSchema },
     responses: {
       200: { description: "Product deleted successfully" },
-      404: { description: "Product not found" },
+      400: { description: "Failed to delete product" },
     },
   }),
   async (c) => {
     const { id } = c.req.valid("param");
 
-    const product = await db.product.findUnique({ where: { id } });
-
-    if (!product) {
-      return c.notFound();
+    try {
+      await db.product.delete({ where: { id } });
+    } catch (error) {
+      return c.json({ message: "Failed to delete product" }, 400);
     }
-
-    await db.product.delete({ where: { id } });
 
     return c.json({ message: "Product deleted successfully" });
   }
