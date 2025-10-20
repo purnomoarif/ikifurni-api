@@ -15,5 +15,11 @@ export const ProductSchema = z.object({
 export const ProductsSchema = z.array(ProductSchema);
 
 export const ProductSlugParamSchema = z.object({
-  slug: z.string(),
+  slug: z.string().openapi({ example: "product-slug" }),
 });
+
+export const ProductIdParamSchema = z.object({
+  id: z.string().openapi({ example: "ABC123" }),
+});
+
+export const ProductCreateSchema = ProductSchema.omit({ id: true });
