@@ -10,10 +10,30 @@ import {
   ProductCreateSchema,
   ProductIdParamSchema,
 } from "./modules/product/schema";
+import { UsersSchema } from "./modules/user/schema";
 
 const app = new OpenAPIHono();
 
 app.use(cors());
+
+// GET all users
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/users",
+    responses: {
+      200: {
+        description: "Get all users",
+        content: { "application/json": { schema: UsersSchema } },
+      },
+    },
+  }),
+  async (c) => {
+    const users = await db.user.findMany();
+
+    return c.json(users);
+  }
+);
 
 // GET all products
 app.openapi(
