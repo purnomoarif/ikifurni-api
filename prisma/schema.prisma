@@ -15,8 +15,12 @@ datasource db {
 }
 
 model User {
-  id       String    @id @default(ulid())
-  email    String    @unique
+  id String @id @default(ulid())
+
+  username String @unique
+  email    String @unique
+  fullName String
+
   password Password?
 
   createdAt DateTime @default(now())
@@ -26,7 +30,8 @@ model User {
 model Password {
   id String @id @default(ulid())
 
-  hash   String
+  hash String
+
   user   User   @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userId String @unique
 
