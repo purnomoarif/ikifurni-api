@@ -4,7 +4,7 @@ export const UserSchema = z.object({
   id: z.string(),
   username: z.string(),
   email: z.string(),
-  fullname: z.string(),
+  fullName: z.string(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
