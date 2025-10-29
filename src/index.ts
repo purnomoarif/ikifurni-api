@@ -10,7 +10,11 @@ import {
   ProductCreateSchema,
   ProductIdParamSchema,
 } from "./modules/product/schema";
-import { UsersSchema } from "./modules/user/schema";
+import {
+  UserIdParamSchema,
+  UserSchema,
+  UsersSchema,
+} from "./modules/user/schema";
 
 const app = new OpenAPIHono();
 
@@ -144,6 +148,34 @@ app.openapi(
 );
 
 // GET users by id
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/users/{id}",
+    request: { params: UserIdParamSchema },
+    responses: {
+      200: {
+        description: "Get one users by ID",
+        content: { "application/json": { schema: UserSchema } },
+      },
+      404: {
+        description: "User by id not found",
+      },
+    },
+  }),
+  async (c) => {
+    const { id } = c.req.valid("param");
+
+    const user = await db.user.findUnique({ where: { id } });
+
+    if (!user) {
+      return c.notFound();
+    }
+
+    return c.json(user);
+  }
+);
+
 // POST register
 // POST log in
 // GET auth/me
