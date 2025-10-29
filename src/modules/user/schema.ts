@@ -21,3 +21,10 @@ export const RegisterUserSchema = z.object({
   fullName: z.string(),
   password: z.string(),
 });
+
+export const LoginUserSchema = z.object({
+  email: z.string(),
+  password: z.string(),
+});
+
+export const TokenSchema = z.string();
