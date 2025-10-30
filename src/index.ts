@@ -13,12 +13,15 @@ import {
 } from "./modules/product/schema";
 import {
   LoginUserSchema,
+  PrivateUserSchema,
   RegisterUserSchema,
   TokenSchema,
   UserIdParamSchema,
   UserSchema,
   UsersSchema,
 } from "./modules/user/schema";
+import { signToken } from "./lib/token";
+import { checkAuthorized } from "./modules/auth/middleware";
 
 const app = new OpenAPIHono();
 
@@ -245,7 +248,7 @@ app.openapi(
     responses: {
       201: {
         description: "Logged in to user",
-        content: { "application/json": { schema: TokenSchema } },
+        content: { "text/plain": { schema: TokenSchema } },
       },
       400: {
         description: "Failed to login user",
@@ -288,16 +291,9 @@ app.openapi(
         });
       }
 
-      const payload = {
-        sub: user.id,
-        exp: Math.floor(Date.now() / 1000) + 60 * 5, // Expires in 5 minutes
-      };
+      const token = await signToken(user.id);
 
-      const tokenSecretKey = String(process.env.TOKEN_SECRET_KEY);
-
-      const token = await sign(payload, tokenSecretKey);
-
-      return c.json(token);
+      return c.text(token);
     } catch (error) {
       return c.json(
         {
@@ -310,6 +306,25 @@ app.openapi(
 );
 
 // GET auth/me
+
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/auth/me",
+    middleware: checkAuthorized,
+    responses: {
+      200: {
+        description: "Get authenticated user",
+        content: { "application/json": { schema: PrivateUserSchema } },
+      },
+    },
+  }),
+  async (c) => {
+    const user = c.get("user");
+
+    return c.json(user);
+  }
+);
 
 app.doc("/openapi.json", {
   openapi: "3.0.0",
