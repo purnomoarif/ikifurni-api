@@ -249,6 +249,9 @@ app.openapi(
       400: {
         description: "Failed to login user",
       },
+      404: {
+        description: "User not found",
+      },
     },
   }),
 
@@ -257,10 +260,13 @@ app.openapi(
 
     try {
       const user = await db.user.findUnique({
-        where: {
-          email: body.email,
-        },
+        where: { email: body.email },
       });
+
+      if (!user) {
+        return c.notFound();
+      }
+
       console.log({ user });
 
       //  TODO
