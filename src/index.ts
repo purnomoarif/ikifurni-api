@@ -1,6 +1,7 @@
 import { cors } from "hono/cors";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
+import { sign, verify } from "hono/jwt";
 
 import { db } from "./lib/db";
 import {
@@ -261,16 +262,40 @@ app.openapi(
     try {
       const user = await db.user.findUnique({
         where: { email: body.email },
+        include: {
+          password: true,
+        },
       });
 
       if (!user) {
         return c.notFound();
       }
 
-      console.log({ user });
+      if (!user.password?.hash) {
+        return c.json({
+          message: "User has no password",
+        });
+      }
 
-      //  TODO
-      const token = "...";
+      const isMatch = await Bun.password.verify(
+        body.password,
+        user.password?.hash
+      );
+
+      if (!isMatch) {
+        return c.json({
+          message: "Password incorrect",
+        });
+      }
+
+      const payload = {
+        sub: user.id,
+        exp: Math.floor(Date.now() / 1000) + 60 * 5, // Expires in 5 minutes
+      };
+
+      const tokenSecretKey = String(process.env.TOKEN_SECRET_KEY);
+
+      const token = await sign(payload, tokenSecretKey);
 
       return c.json(token);
     } catch (error) {
