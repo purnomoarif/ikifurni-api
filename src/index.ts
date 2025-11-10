@@ -21,6 +21,7 @@ import {
 } from "./modules/user/schema";
 import { signToken } from "./lib/token";
 import { checkAuthorized } from "./modules/auth/middleware";
+import { CartSchema } from "./modules/cart/schema";
 
 const app = new OpenAPIHono();
 
@@ -344,3 +345,35 @@ app.get(
 export default app;
 
 // GET /cart
+app.openapi(
+  createRoute({
+    method: "get",
+    path: "/cart",
+    middleware: checkAuthorized,
+    responses: {
+      200: {
+        description: "Get cart",
+        content: { "application/json": { schema: CartSchema } },
+      },
+    },
+  }),
+  async (c) => {
+    const user = c.get("user");
+
+    const cart = await db.cart.findFirst({
+      where: { userId: user.id },
+      include: { items: { include: { product: true } } },
+    });
+
+    if (!cart) {
+      const newCart = await db.cart.create({
+        data: { userId: user.id },
+        include: { items: { include: { product: true } } },
+      });
+
+      return c.json(newCart);
+    }
+
+    return c.json(cart);
+  }
+);
