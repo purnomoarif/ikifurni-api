@@ -6,10 +6,10 @@ export const ProductSchema = z.object({
   name: z.string(),
   imageUrl: z.string(),
   price: z.number(),
+  stock: z.number(),
   description: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  stock: z.number(),
 });
 
 export const ProductsSchema = z.array(ProductSchema);
