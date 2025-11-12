@@ -9,6 +9,7 @@ export const ProductSchema = z.object({
   description: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  stock: z.number(),
 });
 
 export const ProductsSchema = z.array(ProductSchema);
