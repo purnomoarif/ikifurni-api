@@ -17,13 +17,10 @@ cartRoute.openapi(
         description: "Get user's cart",
         content: { "application/json": { schema: CartSchema } },
       },
-      404: { description: "Cart not found" },
     },
   }),
   async (c) => {
     const user = c.get("user");
-
-    console.log({ user });
 
     const cart = await db.cart.findUnique({
       where: { userId: user.id },
