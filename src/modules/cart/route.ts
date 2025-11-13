@@ -7,7 +7,6 @@ import { db } from "../../lib/db";
 export const cartRoute = new OpenAPIHono();
 
 // GET cart
-
 cartRoute.openapi(
   createRoute({
     method: "get",
@@ -18,21 +17,25 @@ cartRoute.openapi(
         description: "Get user's cart",
         content: { "application/json": { schema: CartSchema } },
       },
-      404: {
-        description: "Cart not found",
-      },
+      404: { description: "Cart not found" },
     },
   }),
   async (c) => {
     const user = c.get("user");
 
-    const cart = await db.cart.findFirst({
+    console.log({ user });
+
+    const cart = await db.cart.findUnique({
       where: { userId: user.id },
       include: { items: { include: { product: true } } },
     });
 
     if (!cart) {
-      return c.notFound();
+      const newCart = await db.cart.create({
+        data: { userId: user.id },
+        include: { items: { include: { product: true } } },
+      });
+      return c.json(newCart);
     }
 
     return c.json(cart);
