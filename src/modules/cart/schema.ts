@@ -4,31 +4,22 @@ import { ProductSchema } from "../product/schema";
 export const CartItemSchema = z.object({
   id: z.string(),
 
-  quantity: z.number().min(1),
-
-  productId: z.string(),
   product: ProductSchema,
+  productId: z.string(),
 
-  cartId: z.string(),
+  quantity: z.number().int(),
 
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+
+export const CartItemsSchema = z.array(CartItemSchema);
 
 export const CartSchema = z.object({
   id: z.string(),
 
-  items: z.array(CartItemSchema),
-
-  userId: z.string(),
+  items: CartItemsSchema,
 
   createdAt: z.date(),
   updatedAt: z.date(),
 });
-
-export const AddCartItemSchema = z.object({
-  productId: z.string(),
-  quantity: z.number().default(1),
-});
-
-export type Cart = z.infer<typeof CartSchema>;

@@ -9,6 +9,7 @@ import { CartSchema } from "./modules/cart/schema";
 import { productRoute } from "./modules/product/route";
 import { userRoute } from "./modules/user/route";
 import { authRoute } from "./modules/auth/route";
+import { cartRoute } from "./modules/cart/route";
 
 const app = new OpenAPIHono();
 
@@ -17,6 +18,7 @@ app.use(cors());
 app.route("/products", productRoute);
 app.route("/users", userRoute);
 app.route("/auth", authRoute);
+app.route("/cart", cartRoute);
 
 app.doc("/openapi.json", {
   openapi: "3.0.0",
