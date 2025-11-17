@@ -59,6 +59,9 @@ model Cart {
 
   items CartItem[]
 
+  totalQuantity Int
+  totalPrice    Int
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -72,7 +75,8 @@ model CartItem {
   product   Product @relation(fields: [productId], references: [id])
   productId String
 
-  quantity Int
+  quantity      Int
+  subTotalPrice Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
